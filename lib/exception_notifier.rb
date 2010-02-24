@@ -30,8 +30,11 @@ class ExceptionNotifier < ActionMailer::Base
   @@email_prefix = "[ERROR] "
   cattr_accessor :email_prefix
 
-  @@sections = %w(request session environment backtrace)
-  cattr_accessor :sections
+  @@sections = %w(request session environment)
+  cattr_accessor :request_sections
+
+  @@general_sections = %w(backtrace)
+  cattr_accessor :general_sections
 
   self.template_root = "#{File.dirname(__FILE__)}/../views"
 
@@ -49,10 +52,32 @@ class ExceptionNotifier < ActionMailer::Base
                   :exception => exception, :host => (request.env["HTTP_X_FORWARDED_HOST"] || request.env["HTTP_HOST"]),
                   :backtrace => sanitize_backtrace(exception.backtrace),
                   :rails_root => rails_root, :data => data,
-                  :sections => sections })
+                  :sections => (request_sections+general_sections) })
+  end
+
+  def self.trace(subject="", data={}, &block)
+    begin
+      yield
+    rescue Exception, StandardError => exception
+      deliver_exception_notification_without_request exception, subject, data
+      raise exception
+    end
   end
 
   private
+    def exception_notification_without_request(exception, subject, data={})
+      content_type "text/plain"
+  
+      subject    "#{email_prefix}#{subject} (#{exception.class}) #{exception.message.inspect}"
+  
+      recipients exception_recipients
+      from       sender_address
+  
+      body       data.merge({ :exception => exception, :host => `hostname`,
+                    :backtrace => sanitize_backtrace(exception.backtrace),
+                    :rails_root => rails_root, :data => data,
+                    :sections => general_sections })
+    end
 
     def sanitize_backtrace(trace)
       re = Regexp.new(/^#{Regexp.escape(rails_root)}/)
