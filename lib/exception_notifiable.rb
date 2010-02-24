@@ -49,6 +49,7 @@ module ExceptionNotifiable
 
     def exceptions_to_treat_as_404
       exceptions = [ActionController::UnknownController, ActionController::UnknownAction]
+      exceptions << ActionController::UnknownHttpMethod if ActionController.const_defined?(:UnknownHttpMethod)
       exceptions << ActionController::RoutingError if ActionController.const_defined?(:RoutingError)
       exceptions << ActiveRecord::RecordNotFound if Object.const_defined?(:ActiveRecord)
       exceptions
