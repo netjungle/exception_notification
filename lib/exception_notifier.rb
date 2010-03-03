@@ -30,7 +30,7 @@ class ExceptionNotifier < ActionMailer::Base
   @@email_prefix = "[ERROR] "
   cattr_accessor :email_prefix
 
-  @@sections = %w(request session environment)
+  @@request_sections = %w(request session environment)
   cattr_accessor :request_sections
 
   @@general_sections = %w(backtrace)
