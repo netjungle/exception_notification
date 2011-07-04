@@ -36,7 +36,7 @@ class ExceptionNotifier < ActionMailer::Base
   @@general_sections = %w(backtrace)
   cattr_accessor :general_sections
 
-  self.template_root = "#{File.dirname(__FILE__)}/../views"
+  self.prepend_view_path = "#{File.dirname(__FILE__)}/../views"
 
   def self.reloadable?() false end
 
